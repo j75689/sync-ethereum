@@ -10,12 +10,13 @@ import (
 )
 
 type Config struct {
-	APPID    string         `mapstructure:"app_id"`
-	Release  bool           `mapstructure:"release"`
-	Logger   LoggerConfig   `mapstructure:"logger"`
-	HTTP     HTTPConfig     `mapstructure:"http"`
-	DataBase DataBaseConfig `mapstructure:"database"`
-	MQ       MQConfig       `mapstructure:"mq"`
+	APPID     string          `mapstructure:"app_id"`
+	Release   bool            `mapstructure:"release"`
+	Logger    LoggerConfig    `mapstructure:"logger"`
+	HTTP      HTTPConfig      `mapstructure:"http"`
+	DataBase  DataBaseConfig  `mapstructure:"database"`
+	MQ        MQConfig        `mapstructure:"mq"`
+	EthClient EthClientConfig `mapstructure:"eth_client"`
 }
 
 type LoggerConfig struct {
@@ -57,6 +58,11 @@ type KafkaOptionConfig struct {
 	OffsetsInitial int64    `mapstructure:"offsets_initial"`
 }
 
+type EthClientConfig struct {
+	URL         string        `mapstructure:"url"`
+	DialTimeout time.Duration `mapstructure:"dial_timeout"`
+}
+
 func NewConfig(configPath string) (Config, error) {
 	var file *os.File
 	file, _ = os.Open(configPath)
@@ -95,6 +101,10 @@ func NewConfig(configPath string) (Config, error) {
 	v.SetDefault("mq.kafka_option.brokers", []string{})
 	v.SetDefault("mq.kafka_option.consumer_group", "")
 	v.SetDefault("mq.kafka_option.offsets_initial", -2) // OffsetNewest = -1 ,OffsetOldest = -2
+
+	/* eth client */
+	v.SetDefault("eth_client.url", "")
+	v.SetDefault("eth_client.dial_timeout", 10*time.Second)
 
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	v.ReadConfig(file)
