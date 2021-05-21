@@ -15,6 +15,7 @@ type Config struct {
 	Logger   LoggerConfig   `mapstructure:"logger"`
 	HTTP     HTTPConfig     `mapstructure:"http"`
 	DataBase DataBaseConfig `mapstructure:"database"`
+	MQ       MQConfig       `mapstructure:"mq"`
 }
 
 type LoggerConfig struct {
@@ -43,6 +44,17 @@ type DataBaseConfig struct {
 	MaxIdleConn    int           `mapstructure:"max_idle_conn"`
 	MaxOpenConn    int           `mapstructure:"max_open_conn"`
 	SSLMode        bool          `mapstructure:"ssl_mode"`
+}
+
+type MQConfig struct {
+	Driver      string            `mapstructure:"driver"`
+	KafkaOption KafkaOptionConfig `mapstructure:"kafka_option"`
+}
+
+type KafkaOptionConfig struct {
+	Brokers        []string `mapstructure:"brokers"`
+	ConsumerGroup  string   `mapstructure:"consumer_group"`
+	OffsetsInitial int64    `mapstructure:"offsets_initial"`
 }
 
 func NewConfig(configPath string) (Config, error) {
@@ -77,6 +89,12 @@ func NewConfig(configPath string) (Config, error) {
 	v.SetDefault("database.max_idle_conn", 2)
 	v.SetDefault("database.max_open_conn", 5)
 	v.SetDefault("database.ssl_mode", false)
+
+	/* mq */
+	v.SetDefault("mq.driver", "")
+	v.SetDefault("mq.kafka_option.brokers", []string{})
+	v.SetDefault("mq.kafka_option.consumer_group", "")
+	v.SetDefault("mq.kafka_option.offsets_initial", -2) // OffsetNewest = -1 ,OffsetOldest = -2
 
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	v.ReadConfig(file)
