@@ -1,0 +1,10 @@
+app_id: sync-ethereum
+release: false
+
+logger:
+  level: INFO
+  format: console # json, console
+
+http:
+  port: 8080
+
