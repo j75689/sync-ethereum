@@ -4,15 +4,17 @@ import (
 	"os"
 	"strings"
 	"sync-ethereum/pkg/logger"
+	"time"
 
 	"github.com/spf13/viper"
 )
 
 type Config struct {
-	APPID   string       `mapstructure:"app_id"`
-	Release bool         `mapstructure:"release"`
-	Logger  LoggerConfig `mapstructure:"logger"`
-	HTTP    HTTPConfig   `mapstructure:"http"`
+	APPID    string         `mapstructure:"app_id"`
+	Release  bool           `mapstructure:"release"`
+	Logger   LoggerConfig   `mapstructure:"logger"`
+	HTTP     HTTPConfig     `mapstructure:"http"`
+	DataBase DataBaseConfig `mapstructure:"database"`
 }
 
 type LoggerConfig struct {
@@ -22,6 +24,25 @@ type LoggerConfig struct {
 
 type HTTPConfig struct {
 	Port uint16 `mapstructure:"port"`
+}
+
+type DataBaseConfig struct {
+	Driver         string        `mapstructure:"driver"`
+	Host           string        `mapstructure:"host"`
+	Port           uint          `mapstructure:"port"`
+	Database       string        `mapstructure:"database"`
+	InstanceName   string        `mapstructure:"instance_name"`
+	User           string        `mapstructure:"user"`
+	Password       string        `mapstructure:"password"`
+	ConnectTimeout string        `mapstructure:"connect_timeout"`
+	ReadTimeout    string        `mapstructure:"read_timeout"`
+	WriteTimeout   string        `mapstructure:"write_timeout"`
+	DialTimeout    time.Duration `mapstructure:"dial_timeout"`
+	MaxLifetime    time.Duration `mapstructure:"max_lifetime"`
+	MaxIdleTime    time.Duration `mapstructure:"max_idletime"`
+	MaxIdleConn    int           `mapstructure:"max_idle_conn"`
+	MaxOpenConn    int           `mapstructure:"max_open_conn"`
+	SSLMode        bool          `mapstructure:"ssl_mode"`
 }
 
 func NewConfig(configPath string) (Config, error) {
@@ -38,6 +59,24 @@ func NewConfig(configPath string) (Config, error) {
 	v.SetDefault("logger.level", "INFO")
 	v.SetDefault("logger.format", logger.ConsoleFormat)
 	v.SetDefault("http.port", "8080")
+
+	/* database */
+	v.SetDefault("database.driver", "mysql")
+	v.SetDefault("database.host", "localhost")
+	v.SetDefault("database.port", 3306)
+	v.SetDefault("database.database", "")
+	v.SetDefault("database.instance_name", "")
+	v.SetDefault("database.user", "root")
+	v.SetDefault("database.password", "")
+	v.SetDefault("database.connect_timeout", "10s")
+	v.SetDefault("database.read_timeout", "30s")
+	v.SetDefault("database.write_timeout", "30s")
+	v.SetDefault("database.dial_timeout", "10s")
+	v.SetDefault("database.max_idletime", "1h")
+	v.SetDefault("database.max_lifetime", "1h")
+	v.SetDefault("database.max_idle_conn", 2)
+	v.SetDefault("database.max_open_conn", 5)
+	v.SetDefault("database.ssl_mode", false)
 
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	v.ReadConfig(file)
