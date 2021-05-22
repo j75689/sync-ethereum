@@ -2,6 +2,8 @@ package model
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type Transaction struct {
@@ -16,6 +18,10 @@ type Transaction struct {
 	CreatedAt   time.Time         `json:"created_at"`
 	UpdatedAt   time.Time         `json:"updated_at"`
 	DeletedAt   *time.Time        `json:"deleted_at" gorm:"index"`
+}
+
+func (tx Transaction) Preload(db *gorm.DB) *gorm.DB {
+	return db.Preload("Logs")
 }
 
 type TransactionLog struct {

@@ -2,6 +2,8 @@ package model
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type Block struct {
@@ -14,4 +16,8 @@ type Block struct {
 	CreatedAt   time.Time      `json:"created_at"`
 	UpdatedAt   time.Time      `json:"updated_at"`
 	DeletedAt   *time.Time     `json:"deleted_at" gorm:"index"`
+}
+
+func (block Block) Preload(db *gorm.DB) *gorm.DB {
+	return db.Preload("Transaction")
 }

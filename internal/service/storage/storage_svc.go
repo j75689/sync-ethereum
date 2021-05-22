@@ -32,11 +32,11 @@ func (svc *StorageService) UpdateCurrentBlockNumber(ctx context.Context, blockNu
 }
 
 func (svc *StorageService) GetBlock(ctx context.Context, filter model.Block) (model.Block, error) {
-	return svc.repo.GetBlock(ctx, filter)
+	return svc.repo.GetBlock(ctx, filter, model.Block{}.Preload, model.Transaction{}.Preload)
 }
 
 func (svc *StorageService) ListBlock(ctx context.Context, filter model.Block, pagination model.Pagination, sorting model.Sorting) ([]model.Block, error) {
-	return svc.repo.ListBlock(ctx, filter, pagination.LimitAndOffset, sorting.Sort)
+	return svc.repo.ListBlock(ctx, filter, pagination.LimitAndOffset, sorting.Sort, model.Block{}.Preload, model.Transaction{}.Preload)
 }
 
 func (svc *StorageService) CreateBlock(ctx context.Context, block *model.Block) error {
@@ -48,7 +48,7 @@ func (svc *StorageService) UpdateBlock(ctx context.Context, filter model.Block, 
 }
 
 func (svc *StorageService) GetTransaction(ctx context.Context, filter model.Transaction) (model.Transaction, error) {
-	return svc.repo.GetTransaction(ctx, filter)
+	return svc.repo.GetTransaction(ctx, filter, model.Transaction{}.Preload)
 }
 
 func (svc *StorageService) Close() error {
