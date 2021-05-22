@@ -40,6 +40,7 @@ func (c *Crawler) Start() error {
 		if err != nil {
 			return false, err
 		}
+
 		modelBlock := model.Block{
 			BlockNumber: model.GormBigInt(*block.Number()),
 			BlockHash:   block.Hash().Hex(),
@@ -89,7 +90,7 @@ func (c *Crawler) Start() error {
 
 			modelBlock.Transaction[idx] = modelTx
 		}
-
+		fmt.Println()
 		b, err := json.Marshal(modelBlock)
 		if err != nil {
 			return true, err // format error, not retry

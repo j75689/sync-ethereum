@@ -52,6 +52,13 @@ func (scheduler *Scheduler) Start() error {
 			if currentBlockNumber.Int64() < scheduler.config.Scheduler.StartAt {
 				bi := big.NewInt(scheduler.config.Scheduler.StartAt)
 				currentBlockNumber = model.GormBigInt(*bi)
+
+				err = scheduler.storageSvc.UpdateCurrentBlockNumber(ctx, currentBlockNumber)
+				if err != nil {
+					scheduler.logger.Error().Int64("block_number", currentBlockNumber.Int64()).Err(err).Msg("update db current block number error")
+					cancel()
+					continue
+				}
 			}
 
 			number, err := scheduler.crawler.GetBlockNumber(ctx)
@@ -61,12 +68,14 @@ func (scheduler *Scheduler) Start() error {
 				continue
 			}
 			scheduler.logger.Info().Msgf("parse current block number: %d", number.Int64())
+
 			err = scheduler.storageSvc.UpdateCurrentBlockNumber(ctx, model.GormBigInt(*number))
 			if err != nil {
 				scheduler.logger.Error().Int64("block_number", number.Int64()).Err(err).Msg("update db current block number error")
 				cancel()
 				continue
 			}
+
 			i := currentBlockNumber.Int64() - int64(scheduler.config.Scheduler.UnstableNumber) // update unstable block
 			for i < number.Int64() {
 				scheduler.logger.Info().Int64("block_number", i).Err(err).Msg("push crawler id")

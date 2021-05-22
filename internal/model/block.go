@@ -7,7 +7,7 @@ import (
 )
 
 type Block struct {
-	BlockNumber GormBigInt     `json:"block_num" gorm:"type:bigint;column:block_num;primaryKey;autoIncrement:false"`
+	BlockNumber GormBigInt     `json:"block_num" gorm:"type:varchar(32);column:block_num;primaryKey;autoIncrement:false"`
 	BlockHash   string         `json:"block_hash" gorm:"type:varchar(128);column:block_hash;uniqueIndex"`
 	BlockTime   uint64         `json:"block_time"`
 	ParentHash  string         `json:"parent_hash" gorm:"type:varchar(128);column:parent_hash;uniqueIndex"`

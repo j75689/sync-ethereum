@@ -28,8 +28,8 @@ eth_client:
   dial_timeout: 10s
 
 scheduler:
-  unstable_num: 20
-  start_at: 9070000
+  unstable_num: 0
+  start_at: 9073843
   sync:
     interval: 5s
 

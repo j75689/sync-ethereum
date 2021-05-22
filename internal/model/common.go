@@ -2,6 +2,7 @@ package model
 
 import (
 	"database/sql/driver"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
@@ -20,11 +21,15 @@ func (bi GormBigInt) Int64() int64 {
 	return bigI.Int64()
 }
 
-func (bi GormBigInt) Scan(val interface{}) error {
+func (bi GormBigInt) Bytes() []byte {
+	bigI := big.Int(bi)
+	return bigI.Bytes()
+}
+
+func (bi *GormBigInt) Scan(val interface{}) error {
 	if val == nil {
 		return nil
 	}
-
 	var data string
 	switch v := val.(type) {
 	case []byte:
@@ -33,7 +38,7 @@ func (bi GormBigInt) Scan(val interface{}) error {
 		data = v
 	case int64:
 		bigI := new(big.Int).SetInt64(v)
-		bi = GormBigInt(*bigI)
+		*bi = GormBigInt(*bigI)
 		return nil
 	default:
 		return fmt.Errorf("bigint: can't convert %s type to *big.Int", reflect.TypeOf(val).Kind())
@@ -43,13 +48,28 @@ func (bi GormBigInt) Scan(val interface{}) error {
 	if !ok {
 		return fmt.Errorf("bigint can't convert %s to *big.Int", data)
 	}
-	bi = GormBigInt(*bigI)
+	*bi = GormBigInt(*bigI)
 	return nil
 }
 
 func (bi GormBigInt) Value() (driver.Value, error) {
 	bigI := big.Int(bi)
 	return bigI.String(), nil
+}
+
+func (bi GormBigInt) MarshalJSON() ([]byte, error) {
+	return json.Marshal(bi.Int64())
+}
+
+func (bi GormBigInt) UnmarshalJSON(data []byte) error {
+	var i64 int64
+	err := json.Unmarshal(data, &i64)
+	if err != nil {
+		return err
+	}
+	bigI := big.NewInt(i64)
+	bi = GormBigInt(*bigI)
+	return nil
 }
 
 type BlockData []byte

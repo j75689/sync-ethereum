@@ -96,7 +96,7 @@ func (mq *KafkaMQ) _StartSubscribeWorker(ctx context.Context, workerSize int, me
 	for i := 0; i < workerSize; i++ {
 		errGroup.Go(func() (err error) {
 			defer func() {
-				if recoverErr := util.ConvertRecoverToError(recover()); err != nil {
+				if recoverErr := util.ConvertRecoverToError(recover()); recoverErr != nil {
 					err = recoverErr
 				}
 			}()
@@ -113,7 +113,7 @@ func (mq *KafkaMQ) _StartSubscribeWorker(ctx context.Context, workerSize int, me
 					// recover panic
 					f := func(key string, data []byte) (ack bool, err error) {
 						defer func() {
-							if recoverErr := util.ConvertRecoverToError(recover()); err != nil {
+							if recoverErr := util.ConvertRecoverToError(recover()); recoverErr != nil {
 								err = recoverErr
 								ack = true
 							}

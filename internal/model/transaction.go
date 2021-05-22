@@ -8,12 +8,12 @@ import (
 
 type Transaction struct {
 	TXHash      string            `json:"tx_hash" gorm:"type:varchar(128);column:tx_hash;primaryKey;autoIncrement:false"`
-	BlockNumber GormBigInt        `json:"block_num" gorm:"type:bigint;column:block_num;index"`
+	BlockNumber GormBigInt        `json:"block_num" gorm:"type:varchar(32);column:block_num;index"`
 	From        string            `json:"from" gorm:"type:varchar(128)"`
 	To          string            `json:"to" gorm:"type:varchar(128)"`
 	Nonce       uint64            `json:"nonce"`
 	Data        BlockData         `json:"data"`
-	Value       GormBigInt        `json:"value" gorm:"type:bigint"`
+	Value       GormBigInt        `json:"value" gorm:"type:varchar(32)"`
 	Logs        []*TransactionLog `json:"logs" gorm:"foreignKey:TXHash;references:TXHash"`
 	CreatedAt   time.Time         `json:"created_at"`
 	UpdatedAt   time.Time         `json:"updated_at"`
