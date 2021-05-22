@@ -30,6 +30,7 @@ eth_client:
 scheduler:
   unstable_num: 0
   start_at: 9073843
+  batch_limit: 5
   sync:
     interval: 5s
 

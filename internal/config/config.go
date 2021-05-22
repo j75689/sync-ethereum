@@ -70,6 +70,7 @@ type SchedulerConfig struct {
 	UnstableNumber int        `mapstructure:"unstable_num"`
 	StartAt        int64      `mapstructure:"start_at"`
 	Sync           SyncConfig `mapstructure:"sync"`
+	BatchLimit     int64      `mapstructure:"batch_limit"`
 }
 type SyncConfig struct {
 	Interval time.Duration `mapstructure:"interval"`
@@ -133,6 +134,7 @@ func NewConfig(configPath string) (Config, error) {
 	v.SetDefault("scheduler.unstable_num", 20)
 	v.SetDefault("scheduler.start_at", 0)
 	v.SetDefault("scheduler.sync.interval", 10*time.Second)
+	v.SetDefault("scheduler.batch_limit", 100)
 
 	/* crawler */
 	v.SetDefault("crawler.topic", "")
