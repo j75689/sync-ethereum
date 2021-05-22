@@ -24,7 +24,7 @@ func Execute() {
 }
 
 func init() {
-	_RootCmd.AddCommand(_HttpCmd, _SchedulerCmd, _MigrationCmd)
+	_RootCmd.AddCommand(_HttpCmd, _SchedulerCmd, _CrawlerCmd, _MigrationCmd)
 	_RootCmd.PersistentFlags().StringVar(&_CfgFile, "config", "config/default.config.yaml", "config file")
 	_RootCmd.PersistentFlags().UintVar(&_Timeout, "timeout", 300, "graceful shutdown timeout (second)")
 }

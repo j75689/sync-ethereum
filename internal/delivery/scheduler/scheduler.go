@@ -11,10 +11,9 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/rs/zerolog"
-	"gorm.io/gorm"
 )
 
-func NewScheduler(config config.Config, logger zerolog.Logger, db *gorm.DB, mq mq.MQ, crawler service.CrawlerService, storageSvc service.StorageService) *Scheduler {
+func NewScheduler(config config.Config, logger zerolog.Logger, mq mq.MQ, crawler service.CrawlerService, storageSvc service.StorageService) *Scheduler {
 	return &Scheduler{
 		config:     config,
 		logger:     logger,
@@ -71,7 +70,7 @@ func (scheduler *Scheduler) Start() error {
 			i := currentBlockNumber.Int64() - int64(scheduler.config.Scheduler.UnstableNumber) // update unstable block
 			for i < number.Int64() {
 				scheduler.logger.Info().Int64("block_number", i).Err(err).Msg("push crawler id")
-				if err := scheduler.mq.Publish(scheduler.config.Crawler.Topic, uuid.New().String(), []byte{}); err != nil {
+				if err := scheduler.mq.Publish(scheduler.config.Crawler.Topic, uuid.New().String(), big.NewInt(i).Bytes()); err != nil {
 					scheduler.logger.Error().Int64("block_number", i).Err(err).Msg("push crawler id error")
 					break
 				}

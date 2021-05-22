@@ -3,13 +3,13 @@ package kafka
 import (
 	"context"
 	"errors"
-	"fmt"
-	"runtime"
 	"sync-ethereum/pkg/mq"
+	"sync-ethereum/pkg/util"
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill-kafka/v2/pkg/kafka"
 	"github.com/ThreeDotsLabs/watermill/message"
+	"golang.org/x/sync/errgroup"
 )
 
 type KafkaOption struct {
@@ -75,8 +75,7 @@ func (mq *KafkaMQ) Subscribe(ctx context.Context, workerSize int, topic string, 
 		return err
 	}
 
-	mq._StartSubscribeWorker(ctx, workerSize, message, process, errCallBack...)
-	return nil
+	return mq._StartSubscribeWorker(ctx, workerSize, message, process, errCallBack...)
 }
 
 func (mq *KafkaMQ) SubscriberMiddleware(middleware ...func(key string, data []byte)) {
@@ -91,12 +90,22 @@ func (mq *KafkaMQ) Close() error {
 }
 
 func (mq *KafkaMQ) _StartSubscribeWorker(ctx context.Context, workerSize int, messageChan <-chan *message.Message,
-	process func(key string, data []byte) (bool, error), errCallBack ...func(string, error)) {
+	process func(key string, data []byte) (bool, error), errCallBack ...func(string, error)) error {
+
+	errGroup := errgroup.Group{}
 	for i := 0; i < workerSize; i++ {
-		go func() {
+		errGroup.Go(func() (err error) {
+			defer func() {
+				if recoverErr := util.ConvertRecoverToError(recover()); err != nil {
+					err = recoverErr
+				}
+			}()
 			for {
 				select {
 				case m := <-messageChan:
+					if m == nil {
+						continue
+					}
 					for _, mid := range mq.subMiddleware {
 						mid(m.UUID, m.Payload)
 					}
@@ -104,17 +113,9 @@ func (mq *KafkaMQ) _StartSubscribeWorker(ctx context.Context, workerSize int, me
 					// recover panic
 					f := func(key string, data []byte) (ack bool, err error) {
 						defer func() {
-							if r := recover(); r != nil {
-								var msg string
-								for i := 2; ; i++ {
-									_, file, line, ok := runtime.Caller(i)
-									if !ok {
-										break
-									}
-									msg += fmt.Sprintf("%s:%d\n", file, line)
-								}
+							if recoverErr := util.ConvertRecoverToError(recover()); err != nil {
+								err = recoverErr
 								ack = true
-								err = errors.New(msg)
 							}
 						}()
 						return process(m.UUID, m.Payload)
@@ -135,6 +136,8 @@ func (mq *KafkaMQ) _StartSubscribeWorker(ctx context.Context, workerSize int, me
 					return
 				}
 			}
-		}()
+		})
 	}
+
+	return errGroup.Wait()
 }

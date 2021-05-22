@@ -24,7 +24,7 @@ func InitMQ(config config.Config, log zerolog.Logger) (queue mq.MQ, err error) {
 	}
 	if queue != nil && err == nil {
 		queue.SubscriberMiddleware(func(key string, data []byte) {
-			log.Info().Str("request_id", key).Bytes("message", data).Send()
+			log.Info().Str("message_key", key).Bytes("message", data).Send()
 		})
 	}
 	return

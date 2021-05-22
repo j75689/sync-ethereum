@@ -75,13 +75,15 @@ type SyncConfig struct {
 	Interval time.Duration `mapstructure:"interval"`
 }
 type CrawlerConfig struct {
-	Topic    string `mapstructure:"topic"`
-	PoolSize int    `mapstructure:"pool_size"`
+	Topic    string        `mapstructure:"topic"`
+	PoolSize int           `mapstructure:"pool_size"`
+	Timeout  time.Duration `mapstructure:"timeout"`
 }
 
 type DatabaseWriterConfig struct {
-	Topic    string `mapstructure:"topic"`
-	PoolSize int    `mapstructure:"pool_size"`
+	Topic    string        `mapstructure:"topic"`
+	PoolSize int           `mapstructure:"pool_size"`
+	Timeout  time.Duration `mapstructure:"timeout"`
 }
 
 func NewConfig(configPath string) (Config, error) {
@@ -135,10 +137,12 @@ func NewConfig(configPath string) (Config, error) {
 	/* crawler */
 	v.SetDefault("crawler.topic", "")
 	v.SetDefault("crawler.pool_size", 200)
+	v.SetDefault("crawler.timeout", 10*time.Second)
 
 	/* database writer */
 	v.SetDefault("database_writer.topic", "")
 	v.SetDefault("database_writer.pool_size", 200)
+	v.SetDefault("database_writer.timeout", 10*time.Second)
 
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	v.ReadConfig(file)

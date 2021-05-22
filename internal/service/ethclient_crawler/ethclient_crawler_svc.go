@@ -2,7 +2,6 @@ package ethclient_crawler
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 	"sync-ethereum/internal/config"
 	"sync-ethereum/internal/service"
@@ -66,6 +65,5 @@ func (svc *EthClientCrawlerService) GetTransactionReceipt(ctx context.Context, t
 }
 
 func (svc *EthClientCrawlerService) Close() {
-	fmt.Println("pool size: ", svc.clientPool.Len())
 	svc.clientPool.Close()
 }

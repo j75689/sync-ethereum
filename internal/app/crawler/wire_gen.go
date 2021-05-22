@@ -3,14 +3,12 @@
 //go:generate go run github.com/google/wire/cmd/wire
 //+build !wireinject
 
-package scheduler
+package crawler
 
 import (
 	"sync-ethereum/internal/config"
-	"sync-ethereum/internal/delivery/scheduler"
-	"sync-ethereum/internal/repository/gorm"
+	"sync-ethereum/internal/delivery/crawler"
 	"sync-ethereum/internal/service/ethclient_crawler"
-	"sync-ethereum/internal/service/storage"
 	"sync-ethereum/internal/wireset"
 )
 
@@ -30,13 +28,7 @@ func Initialize(configPath string) (Application, error) {
 		return Application{}, err
 	}
 	crawlerService := ethclient_crawler.NewEthClientCrawlerService(configConfig)
-	db, err := wireset.InitDatabase(configConfig, logger)
-	if err != nil {
-		return Application{}, err
-	}
-	storageRepository := gorm.NewStorageRepository(db)
-	storageService := storage.NewStorageService(storageRepository)
-	schedulerScheduler := scheduler.NewScheduler(configConfig, logger, mq, crawlerService, storageService)
-	application := newApplication(logger, schedulerScheduler)
+	crawlerCrawler := crawler.NewCrawler(configConfig, logger, mq, crawlerService)
+	application := newApplication(logger, crawlerCrawler)
 	return application, nil
 }

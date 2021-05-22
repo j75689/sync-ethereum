@@ -36,8 +36,10 @@ scheduler:
 crawler:
   topic: "eth_crawler" 
   pool_size: 200
+  timeout: 10s
 
 database_writer:
   topic: "eth_database_writer"
   pool_size: 200
+  timeout: 10s
   
