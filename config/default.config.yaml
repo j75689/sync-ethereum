@@ -26,9 +26,18 @@ database:
 eth_client:
   url: https://data-seed-prebsc-2-s3.binance.org:8545/
   dial_timeout: 10s
-  
-worker:
-  pool_size: 10
-  start_at: 9000000
+
+scheduler:
+  unstable_num: 20
+  start_at: 9070000
   sync:
     interval: 5s
+
+crawler:
+  topic: "eth_crawler" 
+  pool_size: 200
+
+database_writer:
+  topic: "eth_database_writer"
+  pool_size: 200
+  

@@ -2,11 +2,11 @@
 
 //The build tag makes sure the stub is not built in the final build.
 
-package worker
+package scheduler
 
 import (
 	"sync-ethereum/internal/config"
-	"sync-ethereum/internal/delivery/worker"
+	"sync-ethereum/internal/delivery/scheduler"
 	"sync-ethereum/internal/repository/gorm"
 	crawler "sync-ethereum/internal/service/ethclient_crawler"
 	"sync-ethereum/internal/service/storage"
@@ -25,7 +25,7 @@ func Initialize(configPath string) (Application, error) {
 		gorm.NewStorageRepository,
 		crawler.NewEthClientCrawlerService,
 		storage.NewStorageService,
-		worker.NewWorker,
+		scheduler.NewScheduler,
 	)
 	return Application{}, nil
 }

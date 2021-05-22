@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -14,19 +15,41 @@ import (
 
 type GormBigInt big.Int
 
-func (bi GormBigInt) Scan(value interface{}) error {
-	n, ok := value.(int64)
-	if !ok {
-		return errors.New(fmt.Sprint("failed convert value to int64", value))
+func (bi GormBigInt) Int64() int64 {
+	bigI := big.Int(bi)
+	return bigI.Int64()
+}
+
+func (bi GormBigInt) Scan(val interface{}) error {
+	if val == nil {
+		return nil
 	}
 
-	bi = GormBigInt(*big.NewInt(n))
+	var data string
+	switch v := val.(type) {
+	case []byte:
+		data = string(v)
+	case string:
+		data = v
+	case int64:
+		bigI := new(big.Int).SetInt64(v)
+		bi = GormBigInt(*bigI)
+		return nil
+	default:
+		return fmt.Errorf("bigint: can't convert %s type to *big.Int", reflect.TypeOf(val).Kind())
+	}
+
+	bigI, ok := new(big.Int).SetString(data, 10)
+	if !ok {
+		return fmt.Errorf("bigint can't convert %s to *big.Int", data)
+	}
+	bi = GormBigInt(*bigI)
 	return nil
 }
 
 func (bi GormBigInt) Value() (driver.Value, error) {
 	bigI := big.Int(bi)
-	return bigI.Int64(), nil
+	return bigI.String(), nil
 }
 
 type BlockData []byte

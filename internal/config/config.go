@@ -10,14 +10,16 @@ import (
 )
 
 type Config struct {
-	APPID     string          `mapstructure:"app_id"`
-	Release   bool            `mapstructure:"release"`
-	Logger    LoggerConfig    `mapstructure:"logger"`
-	HTTP      HTTPConfig      `mapstructure:"http"`
-	DataBase  DataBaseConfig  `mapstructure:"database"`
-	MQ        MQConfig        `mapstructure:"mq"`
-	EthClient EthClientConfig `mapstructure:"eth_client"`
-	Worker    WorkerConfig    `mapstructure:"worker"`
+	APPID          string               `mapstructure:"app_id"`
+	Release        bool                 `mapstructure:"release"`
+	Logger         LoggerConfig         `mapstructure:"logger"`
+	HTTP           HTTPConfig           `mapstructure:"http"`
+	DataBase       DataBaseConfig       `mapstructure:"database"`
+	MQ             MQConfig             `mapstructure:"mq"`
+	EthClient      EthClientConfig      `mapstructure:"eth_client"`
+	Scheduler      SchedulerConfig      `mapstructure:"scheduler"`
+	Crawler        CrawlerConfig        `mapstructure:"crawler"`
+	DatabaseWriter DatabaseWriterConfig `mapstructure:"database_writer"`
 }
 
 type LoggerConfig struct {
@@ -64,14 +66,22 @@ type EthClientConfig struct {
 	DialTimeout time.Duration `mapstructure:"dial_timeout"`
 }
 
-type WorkerConfig struct {
-	PoolSize int        `mapstructure:"pool_size"`
-	StartAt  int64      `mapstructure:"start_at"`
-	Sync     SyncConfig `mapstructure:"sync"`
+type SchedulerConfig struct {
+	UnstableNumber int        `mapstructure:"unstable_num"`
+	StartAt        int64      `mapstructure:"start_at"`
+	Sync           SyncConfig `mapstructure:"sync"`
 }
-
 type SyncConfig struct {
 	Interval time.Duration `mapstructure:"interval"`
+}
+type CrawlerConfig struct {
+	Topic    string `mapstructure:"topic"`
+	PoolSize int    `mapstructure:"pool_size"`
+}
+
+type DatabaseWriterConfig struct {
+	Topic    string `mapstructure:"topic"`
+	PoolSize int    `mapstructure:"pool_size"`
 }
 
 func NewConfig(configPath string) (Config, error) {
@@ -117,10 +127,18 @@ func NewConfig(configPath string) (Config, error) {
 	v.SetDefault("eth_client.url", "")
 	v.SetDefault("eth_client.dial_timeout", 10*time.Second)
 
-	/* worker */
-	v.SetDefault("worker.pool_size", 10)
-	v.SetDefault("worker.start_at", 0)
-	v.SetDefault("worker.sync.interval", 10*time.Second)
+	/* scheduler */
+	v.SetDefault("scheduler.unstable_num", 20)
+	v.SetDefault("scheduler.start_at", 0)
+	v.SetDefault("scheduler.sync.interval", 10*time.Second)
+
+	/* crawler */
+	v.SetDefault("crawler.topic", "")
+	v.SetDefault("crawler.pool_size", 200)
+
+	/* database writer */
+	v.SetDefault("database_writer.topic", "")
+	v.SetDefault("database_writer.pool_size", 200)
 
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	v.ReadConfig(file)

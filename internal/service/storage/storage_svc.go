@@ -19,6 +19,18 @@ type StorageService struct {
 	repo repository.StorageRepository
 }
 
+func (svc *StorageService) GetCurrentBlockNumber(ctx context.Context) (model.GormBigInt, error) {
+	currentBlockNumber, err := svc.repo.GetCurrentBlockNumber(ctx)
+	if err != nil {
+		return model.GormBigInt{}, err
+	}
+	return currentBlockNumber.BlockNumber, nil
+}
+
+func (svc *StorageService) UpdateCurrentBlockNumber(ctx context.Context, blockNumber model.GormBigInt) error {
+	return svc.repo.UpdateCurrentBlockNumber(ctx, &model.CurrentBlockNumber{BlockNumber: blockNumber})
+}
+
 func (svc *StorageService) GetBlock(ctx context.Context, filter model.Block) (model.Block, error) {
 	return svc.repo.GetBlock(ctx, filter)
 }

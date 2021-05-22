@@ -8,6 +8,7 @@ require (
 	github.com/ethereum/go-ethereum v1.10.3
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-gormigrate/gormigrate/v2 v2.0.0
+	github.com/google/uuid v1.1.5
 	github.com/google/wire v0.4.0
 	github.com/pkg/errors v0.9.1
 	github.com/rs/zerolog v1.20.0

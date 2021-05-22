@@ -5,20 +5,20 @@ import (
 	"os"
 	"time"
 
-	"sync-ethereum/internal/app/worker"
+	"sync-ethereum/internal/app/scheduler"
 	"sync-ethereum/pkg/util"
 
 	"github.com/spf13/cobra"
 )
 
 var (
-	_WorkerCmd = &cobra.Command{
-		Use:           "worker",
-		Short:         "Start worker",
+	_SchedulerCmd = &cobra.Command{
+		Use:           "scheduler",
+		Short:         "Start scheduler",
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		Run: func(_ *cobra.Command, _ []string) {
-			app, err := worker.Initialize(_CfgFile)
+			app, err := scheduler.Initialize(_CfgFile)
 			if err != nil {
 				fmt.Println(err.Error())
 				os.Exit(1)

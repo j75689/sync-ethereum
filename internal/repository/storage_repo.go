@@ -12,6 +12,8 @@ type StorageRepository interface {
 	MigrateDown() error
 	MigrateUpTo(version string) error
 	MigrateDownTo(version string) error
+	GetCurrentBlockNumber(ctx context.Context, scope ...func(*gorm.DB) *gorm.DB) (model.CurrentBlockNumber, error)
+	UpdateCurrentBlockNumber(ctx context.Context, blockNumber *model.CurrentBlockNumber, scope ...func(*gorm.DB) *gorm.DB) error
 	GetBlock(ctx context.Context, filter model.Block, scope ...func(*gorm.DB) *gorm.DB) (model.Block, error)
 	ListBlock(ctx context.Context, filter model.Block, scope ...func(*gorm.DB) *gorm.DB) ([]model.Block, error)
 	CreateBlock(ctx context.Context, block *model.Block, scope ...func(*gorm.DB) *gorm.DB) error

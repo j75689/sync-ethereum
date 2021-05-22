@@ -65,7 +65,7 @@ func (mq *KafkaMQ) Publish(topic, key string, data []byte) error {
 	return mq.publisher.Publish(topic, message.NewMessage(key, message.Payload(data)))
 }
 
-func (mq *KafkaMQ) Subscribe(ctx context.Context, topic string, process func(key string, data []byte) (bool, error), errCallBack ...func(string, error)) error {
+func (mq *KafkaMQ) Subscribe(ctx context.Context, workerSize int, topic string, process func(key string, data []byte) (bool, error), errCallBack ...func(string, error)) error {
 	if process == nil {
 		return errors.New("process is nil function")
 	}
@@ -75,43 +75,7 @@ func (mq *KafkaMQ) Subscribe(ctx context.Context, topic string, process func(key
 		return err
 	}
 
-	for m := range message {
-		for _, mid := range mq.subMiddleware {
-			mid(m.UUID, m.Payload)
-		}
-
-		// recover panic
-		f := func(key string, data []byte) (ack bool, err error) {
-			defer func() {
-				if r := recover(); r != nil {
-					var msg string
-					for i := 2; ; i++ {
-						_, file, line, ok := runtime.Caller(i)
-						if !ok {
-							break
-						}
-						msg += fmt.Sprintf("%s:%d\n", file, line)
-					}
-					ack = true
-					err = errors.New(msg)
-				}
-			}()
-			return process(m.UUID, m.Payload)
-		}
-
-		isAck, err := f(m.UUID, m.Payload)
-		if err != nil {
-			for _, cb := range errCallBack {
-				cb(m.UUID, err)
-			}
-		}
-		if isAck {
-			m.Ack()
-		} else {
-			m.Nack()
-		}
-	}
-
+	mq._StartSubscribeWorker(ctx, workerSize, message, process, errCallBack...)
 	return nil
 }
 
@@ -124,4 +88,53 @@ func (mq *KafkaMQ) Close() error {
 		return err
 	}
 	return mq.subscriber.Close()
+}
+
+func (mq *KafkaMQ) _StartSubscribeWorker(ctx context.Context, workerSize int, messageChan <-chan *message.Message,
+	process func(key string, data []byte) (bool, error), errCallBack ...func(string, error)) {
+	for i := 0; i < workerSize; i++ {
+		go func() {
+			for {
+				select {
+				case m := <-messageChan:
+					for _, mid := range mq.subMiddleware {
+						mid(m.UUID, m.Payload)
+					}
+
+					// recover panic
+					f := func(key string, data []byte) (ack bool, err error) {
+						defer func() {
+							if r := recover(); r != nil {
+								var msg string
+								for i := 2; ; i++ {
+									_, file, line, ok := runtime.Caller(i)
+									if !ok {
+										break
+									}
+									msg += fmt.Sprintf("%s:%d\n", file, line)
+								}
+								ack = true
+								err = errors.New(msg)
+							}
+						}()
+						return process(m.UUID, m.Payload)
+					}
+
+					isAck, err := f(m.UUID, m.Payload)
+					if err != nil {
+						for _, cb := range errCallBack {
+							cb(m.UUID, err)
+						}
+					}
+					if isAck {
+						m.Ack()
+					} else {
+						m.Nack()
+					}
+				case <-ctx.Done():
+					return
+				}
+			}
+		}()
+	}
 }

@@ -46,6 +46,16 @@ func (repo *StorageRepository) MigrateDownTo(version string) error {
 	return repo.migration.RollbackTo(version)
 }
 
+func (repo *StorageRepository) GetCurrentBlockNumber(ctx context.Context, scope ...func(*gorm.DB) *gorm.DB) (model.CurrentBlockNumber, error) {
+	blockNumber := model.CurrentBlockNumber{}
+	tx := repo.db.WithContext(ctx).Scopes(scope...).First(&blockNumber)
+	return blockNumber, tx.Error
+}
+
+func (repo *StorageRepository) UpdateCurrentBlockNumber(ctx context.Context, blockNumber *model.CurrentBlockNumber, scope ...func(*gorm.DB) *gorm.DB) error {
+	return repo.db.WithContext(ctx).Scopes(scope...).Where(model.CurrentBlockNumber{ID: 1}).Updates(blockNumber).Error
+}
+
 func (repo *StorageRepository) GetBlock(ctx context.Context, filter model.Block, scope ...func(*gorm.DB) *gorm.DB) (model.Block, error) {
 	block := model.Block{}
 	tx := repo.db.WithContext(ctx).Scopes(scope...).Where(filter).First(&block)
