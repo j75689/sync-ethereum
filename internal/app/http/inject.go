@@ -19,6 +19,12 @@ func (application Application) Start() error {
 	return application.httpServer.Run(fmt.Sprintf(":%d", application.config.HTTP.Port))
 }
 
+func (application Application) Stop() error {
+	application.logger.Info().Msg("shutdown http server ...")
+	defer application.logger.Info().Msg("http server is closed")
+	return application.httpServer.Shutdown()
+}
+
 func newApplication(
 	logger zerolog.Logger,
 	config config.Config,

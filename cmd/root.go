@@ -9,20 +9,22 @@ import (
 
 // Root command
 var (
-	cfgFile string
-	rootCmd = &cobra.Command{
+	_Timeout uint
+	_CfgFile string
+	_RootCmd = &cobra.Command{
 		SilenceUsage: true,
 	}
 )
 
 func Execute() {
-	if err := rootCmd.Execute(); err != nil {
+	if err := _RootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err.Error())
 		os.Exit(1)
 	}
 }
 
 func init() {
-	rootCmd.AddCommand(httpCmd)
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "config/default.config.yaml", "config file")
+	_RootCmd.AddCommand(_HttpCmd, _WorkerCmd, _MigrationCmd)
+	_RootCmd.PersistentFlags().StringVar(&_CfgFile, "config", "config/default.config.yaml", "config file")
+	_RootCmd.PersistentFlags().UintVar(&_Timeout, "timeout", 300, "graceful shutdown timeout (second)")
 }

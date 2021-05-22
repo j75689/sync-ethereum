@@ -2,9 +2,33 @@ app_id: sync-ethereum
 release: false
 
 logger:
-  level: INFO
+  level: TRACE
   format: console # json, console
 
 http:
   port: 8080
 
+mq:
+  driver: kafka
+  kafka_option:
+    brokers: 
+      - localhost:9092
+    consumer_group: "sync-ethereum"
+
+database:
+  driver: mysql
+  host: localhost
+  port: 3306
+  user: test
+  password: test
+  database: local
+
+eth_client:
+  url: https://data-seed-prebsc-2-s3.binance.org:8545/
+  dial_timeout: 10s
+  
+worker:
+  pool_size: 10
+  start_at: 9000000
+  sync:
+    interval: 5s

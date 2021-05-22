@@ -17,6 +17,7 @@ type Config struct {
 	DataBase  DataBaseConfig  `mapstructure:"database"`
 	MQ        MQConfig        `mapstructure:"mq"`
 	EthClient EthClientConfig `mapstructure:"eth_client"`
+	Worker    WorkerConfig    `mapstructure:"worker"`
 }
 
 type LoggerConfig struct {
@@ -63,6 +64,16 @@ type EthClientConfig struct {
 	DialTimeout time.Duration `mapstructure:"dial_timeout"`
 }
 
+type WorkerConfig struct {
+	PoolSize int        `mapstructure:"pool_size"`
+	StartAt  int64      `mapstructure:"start_at"`
+	Sync     SyncConfig `mapstructure:"sync"`
+}
+
+type SyncConfig struct {
+	Interval time.Duration `mapstructure:"interval"`
+}
+
 func NewConfig(configPath string) (Config, error) {
 	var file *os.File
 	file, _ = os.Open(configPath)
@@ -105,6 +116,11 @@ func NewConfig(configPath string) (Config, error) {
 	/* eth client */
 	v.SetDefault("eth_client.url", "")
 	v.SetDefault("eth_client.dial_timeout", 10*time.Second)
+
+	/* worker */
+	v.SetDefault("worker.pool_size", 10)
+	v.SetDefault("worker.start_at", 0)
+	v.SetDefault("worker.sync.interval", 10*time.Second)
 
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	v.ReadConfig(file)

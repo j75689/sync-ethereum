@@ -3,11 +3,11 @@
 //go:generate go run github.com/google/wire/cmd/wire
 //+build !wireinject
 
-package http
+package migration
 
 import (
 	"sync-ethereum/internal/config"
-	"sync-ethereum/internal/delivery/http"
+	"sync-ethereum/internal/repository/gorm"
 	"sync-ethereum/internal/wireset"
 )
 
@@ -22,7 +22,11 @@ func Initialize(configPath string) (Application, error) {
 	if err != nil {
 		return Application{}, err
 	}
-	httpServer := http.NewHttpServer()
-	application := newApplication(logger, configConfig, httpServer)
+	db, err := wireset.InitDatabase(configConfig, logger)
+	if err != nil {
+		return Application{}, err
+	}
+	storageRepository := gorm.NewStorageRepository(db)
+	application := newApplication(logger, storageRepository)
 	return application, nil
 }
