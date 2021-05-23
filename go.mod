@@ -8,7 +8,9 @@ require (
 	github.com/ThreeDotsLabs/watermill-kafka/v2 v2.2.1
 	github.com/confluentinc/confluent-kafka-go v1.7.0
 	github.com/ethereum/go-ethereum v1.10.3
-	github.com/gin-gonic/gin v1.6.3
+	github.com/gin-contrib/logger v0.0.3
+	github.com/gin-gonic/contrib v0.0.0-20201101042839-6a891bf89f19
+	github.com/gin-gonic/gin v1.7.2
 	github.com/go-gormigrate/gormigrate/v2 v2.0.0
 	github.com/google/uuid v1.1.5
 	github.com/google/wire v0.4.0

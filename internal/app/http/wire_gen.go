@@ -8,6 +8,8 @@ package http
 import (
 	"sync-ethereum/internal/config"
 	"sync-ethereum/internal/delivery/http"
+	"sync-ethereum/internal/repository/gorm"
+	"sync-ethereum/internal/service/storage"
 	"sync-ethereum/internal/wireset"
 )
 
@@ -22,7 +24,17 @@ func Initialize(configPath string) (Application, error) {
 	if err != nil {
 		return Application{}, err
 	}
-	httpServer := http.NewHttpServer()
+	mq, err := wireset.InitMQ(configConfig, logger)
+	if err != nil {
+		return Application{}, err
+	}
+	db, err := wireset.InitDatabase(configConfig, logger)
+	if err != nil {
+		return Application{}, err
+	}
+	storageRepository := gorm.NewStorageRepository(db)
+	storageService := storage.NewStorageService(storageRepository)
+	httpServer := http.NewHttpServer(configConfig, logger, mq, storageService)
 	application := newApplication(logger, configConfig, httpServer)
 	return application, nil
 }

@@ -3,7 +3,6 @@ package crawler
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"sync-ethereum/internal/config"
 	"sync-ethereum/internal/model"
 	"sync-ethereum/internal/service"
@@ -67,7 +66,6 @@ func (c *Crawler) Start() error {
 			signer := types.NewEIP155Signer(tx.ChainId())
 			sender, err := signer.Sender(tx)
 			if err != nil {
-				fmt.Println(tx.Hash(), err)
 				cancel()
 				continue
 			}

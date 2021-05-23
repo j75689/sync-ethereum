@@ -2,6 +2,8 @@ package gorm
 
 import (
 	"context"
+	"errors"
+	pkgErrors "sync-ethereum/internal/errors"
 	"sync-ethereum/internal/model"
 	"sync-ethereum/internal/repository"
 	"sync-ethereum/internal/repository/gorm/migration"
@@ -59,7 +61,11 @@ func (repo *StorageRepository) UpdateCurrentBlockNumber(ctx context.Context, blo
 func (repo *StorageRepository) GetBlock(ctx context.Context, filter model.Block, scope ...func(*gorm.DB) *gorm.DB) (model.Block, error) {
 	block := model.Block{}
 	tx := repo.db.WithContext(ctx).Scopes(scope...).Where(filter).First(&block)
-	return block, tx.Error
+	err := tx.Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return block, pkgErrors.ErrResourceNotFound
+	}
+	return block, err
 }
 
 func (repo *StorageRepository) ListBlock(ctx context.Context, filter model.Block, scope ...func(*gorm.DB) *gorm.DB) ([]model.Block, error) {
@@ -79,7 +85,11 @@ func (repo *StorageRepository) UpdateBlock(ctx context.Context, filter model.Blo
 func (repo *StorageRepository) GetTransaction(ctx context.Context, filter model.Transaction, scope ...func(*gorm.DB) *gorm.DB) (model.Transaction, error) {
 	transaction := model.Transaction{}
 	tx := repo.db.WithContext(ctx).Scopes(scope...).Where(filter).First(&transaction)
-	return transaction, tx.Error
+	err := tx.Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return transaction, pkgErrors.ErrResourceNotFound
+	}
+	return transaction, err
 }
 
 func (repo *StorageRepository) Close() error {
