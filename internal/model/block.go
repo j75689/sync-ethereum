@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type Block struct {
@@ -20,4 +21,10 @@ type Block struct {
 
 func (block Block) Preload(db *gorm.DB) *gorm.DB {
 	return db.Preload("Transaction")
+}
+
+func (block Block) OnConflict(db *gorm.DB) *gorm.DB {
+	return db.Clauses(clause.OnConflict{
+		UpdateAll: true,
+	})
 }

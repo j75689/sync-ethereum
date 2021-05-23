@@ -40,7 +40,7 @@ func (svc *StorageService) ListBlock(ctx context.Context, filter model.Block, pa
 }
 
 func (svc *StorageService) CreateBlock(ctx context.Context, block *model.Block) error {
-	return svc.repo.CreateBlock(ctx, block)
+	return svc.repo.CreateBlock(ctx, block, model.Block{}.OnConflict)
 }
 
 func (svc *StorageService) UpdateBlock(ctx context.Context, filter model.Block, block *model.Block) error {

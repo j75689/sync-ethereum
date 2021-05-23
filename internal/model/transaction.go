@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type Transaction struct {
@@ -24,6 +25,13 @@ func (tx Transaction) Preload(db *gorm.DB) *gorm.DB {
 	return db.Preload("Logs")
 }
 
+func (transation *Transaction) BeforeCreate(tx *gorm.DB) (err error) {
+	tx.Statement.AddClause(clause.OnConflict{
+		UpdateAll: true,
+	})
+	return nil
+}
+
 type TransactionLog struct {
 	ID        int64      `json:"id" gorm:"primaryKey"`
 	TXHash    string     `json:"tx_hash" gorm:"type:varchar(128)column:tx_hash;index"`
@@ -32,4 +40,11 @@ type TransactionLog struct {
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"updated_at"`
 	DeletedAt *time.Time `json:"deleted_at" gorm:"index"`
+}
+
+func (log *TransactionLog) BeforeCreate(tx *gorm.DB) (err error) {
+	tx.Statement.AddClause(clause.OnConflict{
+		UpdateAll: true,
+	})
+	return nil
 }
