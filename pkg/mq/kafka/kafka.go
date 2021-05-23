@@ -6,6 +6,7 @@ import (
 	"sync-ethereum/pkg/mq"
 	"sync-ethereum/pkg/util"
 
+	"github.com/Shopify/sarama"
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill-kafka/v2/pkg/kafka"
 	"github.com/ThreeDotsLabs/watermill/message"
@@ -16,6 +17,8 @@ type KafkaOption struct {
 	Brokers        []string
 	ConsumerGroup  string
 	OffsetsInitial int64
+	FetchDefault   int32
+	RequiredAcks   int16
 	LoggerAdapter  watermill.LoggerAdapter
 }
 
@@ -34,11 +37,14 @@ func NewKafkaMQ(option KafkaOption) (*KafkaMQ, error) {
 
 	saramaSubscriberConfig := kafka.DefaultSaramaSubscriberConfig()
 	saramaSubscriberConfig.Consumer.Offsets.Initial = option.OffsetsInitial
+	saramaSubscriberConfig.Consumer.Fetch.Default = option.FetchDefault
+	saramaSubscriberConfig.Producer.RequiredAcks = sarama.RequiredAcks(option.RequiredAcks)
 	subscriber, err := kafka.NewSubscriber(
 		kafka.SubscriberConfig{
-			Brokers:       option.Brokers,
-			Unmarshaler:   kafka.DefaultMarshaler{},
-			ConsumerGroup: option.ConsumerGroup,
+			Brokers:               option.Brokers,
+			Unmarshaler:           kafka.DefaultMarshaler{},
+			OverwriteSaramaConfig: saramaSubscriberConfig,
+			ConsumerGroup:         option.ConsumerGroup,
 		}, option.LoggerAdapter,
 	)
 	if err != nil {
@@ -92,52 +98,53 @@ func (mq *KafkaMQ) Close() error {
 func (mq *KafkaMQ) _StartSubscribeWorker(ctx context.Context, workerSize int, messageChan <-chan *message.Message,
 	process func(key string, data []byte) (bool, error), errCallBack ...func(string, error)) error {
 
+	// non supporte worker
 	errGroup := errgroup.Group{}
-	for i := 0; i < workerSize; i++ {
-		errGroup.Go(func() (err error) {
-			defer func() {
-				if recoverErr := util.ConvertRecoverToError(recover()); recoverErr != nil {
-					err = recoverErr
-				}
-			}()
-			for {
-				select {
-				case m := <-messageChan:
-					if m == nil {
-						continue
-					}
-					for _, mid := range mq.subMiddleware {
-						mid(m.UUID, m.Payload)
-					}
-
-					// recover panic
-					f := func(key string, data []byte) (ack bool, err error) {
-						defer func() {
-							if recoverErr := util.ConvertRecoverToError(recover()); recoverErr != nil {
-								err = recoverErr
-								ack = true
-							}
-						}()
-						return process(m.UUID, m.Payload)
-					}
-
-					isAck, err := f(m.UUID, m.Payload)
-					if err != nil {
-						for _, cb := range errCallBack {
-							cb(m.UUID, err)
-						}
-					}
-					if isAck {
-						m.Ack()
-					} else {
-						m.Nack()
-					}
-				case <-ctx.Done():
-					return
-				}
+	errGroup.Go(func() (err error) {
+		defer func() {
+			if recoverErr := util.ConvertRecoverToError(recover()); recoverErr != nil {
+				err = recoverErr
 			}
-		})
-	}
+		}()
+
+		for {
+			select {
+			case m := <-messageChan:
+				if m == nil {
+					continue
+				}
+
+				for _, mid := range mq.subMiddleware {
+					mid(m.UUID, m.Payload)
+				}
+
+				// recover panic
+				f := func(key string, data []byte) (ack bool, err error) {
+					defer func() {
+						if recoverErr := util.ConvertRecoverToError(recover()); recoverErr != nil {
+							err = recoverErr
+							ack = true
+						}
+					}()
+					return process(m.UUID, m.Payload)
+				}
+
+				isAck, err := f(m.UUID, m.Payload)
+				if err != nil {
+					for _, cb := range errCallBack {
+						cb(m.UUID, err)
+					}
+				}
+				if isAck {
+					m.Ack()
+				} else {
+					m.Nack()
+				}
+			case <-ctx.Done():
+				return
+			}
+		}
+	})
 
 	return errGroup.Wait()
 }

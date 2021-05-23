@@ -9,11 +9,13 @@ http:
   port: 8080
 
 mq:
-  driver: kafka
-  kafka_option:
+  driver: confluentkafka
+  confluentkafka_option:
     brokers: 
       - localhost:9092
     consumer_group: "sync-ethereum"
+    group_id: "sync-ethereum"
+    
 
 database:
   driver: mysql
@@ -30,13 +32,13 @@ eth_client:
 scheduler:
   unstable_num: 0
   start_at: 9073843
-  batch_limit: 5
+  batch_limit: 1
   sync:
     interval: 5s
 
 crawler:
   topic: "eth_crawler" 
-  pool_size: 200
+  pool_size: 1
   timeout: 10s
 
 database_writer:

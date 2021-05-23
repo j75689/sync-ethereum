@@ -31,7 +31,7 @@ type Crawler struct {
 }
 
 func (c *Crawler) Start() error {
-	return c.mq.Subscribe(context.Background(), c.config.Crawler.PoolSize, c.config.Crawler.Topic, func(key string, data []byte) (bool, error) {
+	err := c.mq.Subscribe(context.Background(), c.config.Crawler.PoolSize, c.config.Crawler.Topic, func(key string, data []byte) (bool, error) {
 		ctx, cancel := context.WithTimeout(context.Background(), c.config.Crawler.Timeout)
 		defer cancel()
 		number := new(big.Int).SetBytes(data)
@@ -90,7 +90,7 @@ func (c *Crawler) Start() error {
 
 			modelBlock.Transaction[idx] = modelTx
 		}
-		fmt.Println()
+
 		b, err := json.Marshal(modelBlock)
 		if err != nil {
 			return true, err // format error, not retry
@@ -105,6 +105,7 @@ func (c *Crawler) Start() error {
 	}, func(key string, e error) {
 		c.logger.Error().Str("message_key", key).Err(e).Msg("crawler error")
 	})
+	return err
 }
 
 func (c *Crawler) Shutdown() error {

@@ -3,8 +3,10 @@ module sync-ethereum
 go 1.15
 
 require (
+	github.com/Shopify/sarama v1.26.0
 	github.com/ThreeDotsLabs/watermill v1.1.1
 	github.com/ThreeDotsLabs/watermill-kafka/v2 v2.2.1
+	github.com/confluentinc/confluent-kafka-go v1.7.0
 	github.com/ethereum/go-ethereum v1.10.3
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-gormigrate/gormigrate/v2 v2.0.0

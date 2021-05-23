@@ -51,14 +51,55 @@ type DataBaseConfig struct {
 }
 
 type MQConfig struct {
-	Driver      string            `mapstructure:"driver"`
-	KafkaOption KafkaOptionConfig `mapstructure:"kafka_option"`
+	Driver               string                     `mapstructure:"driver"`
+	KafkaOption          KafkaOptionConfig          `mapstructure:"kafka_option"`
+	ConfluentKafkaOption ConfluentKafkaOptionConfig `mapstructure:"confluentkafka_option"`
 }
 
 type KafkaOptionConfig struct {
 	Brokers        []string `mapstructure:"brokers"`
 	ConsumerGroup  string   `mapstructure:"consumer_group"`
 	OffsetsInitial int64    `mapstructure:"offsets_initial"`
+	FetchDefault   int32    `mapstructure:"fetch_default"`
+	RequiredAcks   int16    `mapstructure:"required_acks"`
+}
+
+type ConfluentKafkaOptionConfig struct {
+	Brokers       []string `mapstructure:"brokers"`
+	ClientID      string   `mapstructure:"client_id"`
+	ConsumerGroup string   `mapstructure:"consumer_group"`
+	// All clients sharing the same group.id belong to the same group.
+	GroupID string `mapstructure:"group_id"`
+	// earliest / latest
+	OffsetsInitial string `mapstructure:"offsets_initial"`
+	// range / roundrobin / cooperative-sticky; default cooperative-sticky
+	RebalanceStrategy    string `mapstructure:"rebalance_strategy"`
+	GroupInstanceID      string `mapstructure:"group_instance_id"`
+	HeartbeatIntervalMs  int    `mapstructure:"heartbeat_interval_ms"`
+	SessionTimeoutMs     int    `mapstructure:"session_timeout_ms"`
+	AutoCommitIntervalMs int    `mapstructure:"auto_commit_interval_ms"`
+	EnableAutoCommit     bool   `mapstructure:"enable_auto_commit"`
+
+	// ================ producer related config ================
+	// valid value: 1、2、3;
+	// 1:
+	// The producer will not wait for any acknowledgment from the server at all.
+	// The record will be immediately added to the socket buffer and considered sent.
+	// 2:
+	// This will mean the leader will write the record to its local log but will respond without awaiting full acknowledgement from all followers.
+	// 3:
+	// This means the leader will wait for the full set of in-sync replicas (ISR) to acknowledge the record.
+	Acks int `mapstructure:"acks"`
+	// none, gzip, snappy, lz4, zstd
+	CompressionType string `mapstructure:"compression_type"`
+	Retries         int    `mapstructure:"retries"`
+	BatchSize       int    `mapstructure:"batch_size"`
+	FlushWaitMs     int    `mapstructure:"flush_wait_ms"`
+
+	// ================ consumer related config ================
+	FetchMaxBytes          int `mapstructure:"fetch_max_bytes"`
+	MaxPartitionFetchBytes int `mapstructure:"max_partition_fetch_bytes"`
+	PollTimeoutMs          int `mapstructure:"poll_timeout_ms"`
 }
 
 type EthClientConfig struct {
@@ -124,7 +165,29 @@ func NewConfig(configPath string) (Config, error) {
 	v.SetDefault("mq.driver", "")
 	v.SetDefault("mq.kafka_option.brokers", []string{})
 	v.SetDefault("mq.kafka_option.consumer_group", "")
-	v.SetDefault("mq.kafka_option.offsets_initial", -2) // OffsetNewest = -1 ,OffsetOldest = -2
+	v.SetDefault("mq.kafka_option.offsets_initial", -2) // OffsetNewest = -1, OffsetOldest = -2
+	v.SetDefault("mq.kafka_option.fetch_default", 1024*1024)
+	v.SetDefault("mq.kafka_option.required_acks", 1) // NoResponse = 0, WaitForLocal = 1, WaitForAll = -1
+	/* confluent kafka option */
+	v.SetDefault("mq.confluentkafka_option.brokers", []string{})
+	v.SetDefault("mq.confluentkafka_option.client_id", "")
+	v.SetDefault("mq.confluentkafka_option.consumer_group", "")
+	v.SetDefault("mq.confluentkafka_option.group_id", "")
+	v.SetDefault("mq.confluentkafka_option.offsets_initial", "")
+	v.SetDefault("mq.confluentkafka_option.rebalance_strategy", "")
+	v.SetDefault("mq.confluentkafka_option.group_instance_id", "")
+	v.SetDefault("mq.confluentkafka_option.heartbeat_interval_ms", 0)
+	v.SetDefault("mq.confluentkafka_option.session_timeout_ms", 0)
+	v.SetDefault("mq.confluentkafka_option.auto_commit_interval_ms", 0)
+	v.SetDefault("mq.confluentkafka_option.enable_auto_commit", false)
+	v.SetDefault("mq.confluentkafka_option.acks", 2)
+	v.SetDefault("mq.confluentkafka_option.compression_type", "gzip")
+	v.SetDefault("mq.confluentkafka_option.retries", 5)
+	v.SetDefault("mq.confluentkafka_option.batch_size", 0)
+	v.SetDefault("mq.confluentkafka_option.flush_wait_ms", 0)
+	v.SetDefault("mq.confluentkafka_option.fetch_max_bytes", 0)
+	v.SetDefault("mq.confluentkafka_option.max_partition_fetch_bytes", 0)
+	v.SetDefault("mq.confluentkafka_option.poll_timeout_ms", 100)
 
 	/* eth client */
 	v.SetDefault("eth_client.url", "")
