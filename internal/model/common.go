@@ -74,12 +74,12 @@ func (bi *GormBigInt) UnmarshalJSON(data []byte) error {
 
 type BlockData []byte
 
-func (d BlockData) Scan(value interface{}) error {
+func (d *BlockData) Scan(value interface{}) error {
 	b, ok := value.([]byte)
 	if !ok {
 		return errors.New(fmt.Sprint("failed convert value to []byte", value))
 	}
-	d = BlockData(b)
+	*d = BlockData(b)
 	return nil
 }
 
@@ -91,12 +91,12 @@ func (d BlockData) MarshalJSON() ([]byte, error) {
 	return []byte(strconv.Quote(common.BytesToHash(d).Hex())), nil
 }
 
-func (d BlockData) UnmarshalJSON(data []byte) error {
+func (d *BlockData) UnmarshalJSON(data []byte) error {
 	s, err := strconv.Unquote(string(data))
 	if err != nil {
 		return err
 	}
-	d = common.FromHex(s)
+	*d = common.FromHex(s)
 	return nil
 }
 
