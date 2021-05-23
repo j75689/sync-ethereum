@@ -42,6 +42,16 @@ func (scheduler *Scheduler) Start() error {
 		select {
 		case <-tick.C:
 			ctx, cancel := context.WithTimeout(context.Background(), scheduler.config.Scheduler.Sync.Interval)
+
+			number, err := scheduler.crawler.GetBlockNumber(ctx)
+			if err != nil {
+				scheduler.logger.Error().Err(err).Msg("parse current block number error")
+				cancel()
+				continue
+			}
+			scheduler.logger.Info().Msgf("parse current block number: %d", number.Int64())
+			onlineBockNumber := model.GormBigInt(*number)
+
 			currentBlockNumber, err := scheduler.storageSvc.GetCurrentBlockNumber(ctx)
 			if err != nil {
 				scheduler.logger.Error().Err(err).Msg("get database current block number error")
@@ -53,27 +63,12 @@ func (scheduler *Scheduler) Start() error {
 				bi := big.NewInt(scheduler.config.Scheduler.StartAt)
 				currentBlockNumber = model.GormBigInt(*bi)
 
-				err = scheduler.storageSvc.UpdateCurrentBlockNumber(ctx, currentBlockNumber)
+				err = scheduler.storageSvc.UpdateCurrentBlockNumber(ctx, currentBlockNumber, onlineBockNumber)
 				if err != nil {
 					scheduler.logger.Error().Int64("block_number", currentBlockNumber.Int64()).Err(err).Msg("update db current block number error")
 					cancel()
 					continue
 				}
-			}
-
-			number, err := scheduler.crawler.GetBlockNumber(ctx)
-			if err != nil {
-				scheduler.logger.Error().Err(err).Msg("parse current block number error")
-				cancel()
-				continue
-			}
-			scheduler.logger.Info().Msgf("parse current block number: %d", number.Int64())
-
-			err = scheduler.storageSvc.UpdateCurrentBlockNumber(ctx, model.GormBigInt(*number))
-			if err != nil {
-				scheduler.logger.Error().Int64("block_number", number.Int64()).Err(err).Msg("update db current block number error")
-				cancel()
-				continue
 			}
 
 			i := currentBlockNumber.Int64() - int64(scheduler.config.Scheduler.UnstableNumber) // update unstable block
@@ -87,7 +82,7 @@ func (scheduler *Scheduler) Start() error {
 				i++
 			}
 			number = big.NewInt(i)
-			err = scheduler.storageSvc.UpdateCurrentBlockNumber(ctx, model.GormBigInt(*number))
+			err = scheduler.storageSvc.UpdateCurrentBlockNumber(ctx, model.GormBigInt(*number), onlineBockNumber)
 			if err != nil {
 				scheduler.logger.Error().Int64("block_number", i).Err(err).Msg("update db current block number error")
 				cancel()

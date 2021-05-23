@@ -27,8 +27,8 @@ func (svc *StorageService) GetCurrentBlockNumber(ctx context.Context) (model.Gor
 	return currentBlockNumber.BlockNumber, nil
 }
 
-func (svc *StorageService) UpdateCurrentBlockNumber(ctx context.Context, blockNumber model.GormBigInt) error {
-	return svc.repo.UpdateCurrentBlockNumber(ctx, &model.CurrentBlockNumber{BlockNumber: blockNumber})
+func (svc *StorageService) UpdateCurrentBlockNumber(ctx context.Context, blockNumber model.GormBigInt, onlineBlockNumber model.GormBigInt) error {
+	return svc.repo.UpdateCurrentBlockNumber(ctx, &model.CurrentBlockNumber{BlockNumber: blockNumber, OnlineBlockNumber: onlineBlockNumber})
 }
 
 func (svc *StorageService) GetBlock(ctx context.Context, filter model.Block) (model.Block, error) {

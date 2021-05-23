@@ -31,18 +31,18 @@ eth_client:
 
 scheduler:
   unstable_num: 0
-  start_at: 9073843
-  batch_limit: 1
+  start_at: 9096570
+  batch_limit: 5
   sync:
     interval: 5s
 
 crawler:
   topic: "eth_crawler" 
-  pool_size: 1
+  pool_size: 100
   timeout: 10s
 
 database_writer:
   topic: "eth_database_writer"
-  pool_size: 200
+  pool_size: 100
   timeout: 10s
   
