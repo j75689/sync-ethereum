@@ -61,14 +61,14 @@ func (bi GormBigInt) MarshalJSON() ([]byte, error) {
 	return json.Marshal(bi.Int64())
 }
 
-func (bi GormBigInt) UnmarshalJSON(data []byte) error {
+func (bi *GormBigInt) UnmarshalJSON(data []byte) error {
 	var i64 int64
 	err := json.Unmarshal(data, &i64)
 	if err != nil {
 		return err
 	}
 	bigI := big.NewInt(i64)
-	bi = GormBigInt(*bigI)
+	*bi = GormBigInt(*bigI)
 	return nil
 }
 
