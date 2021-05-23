@@ -31,11 +31,11 @@ eth_client:
   dial_timeout: 10s
 
 scheduler:
-  unstable_num: 20
+  unstable_num: 50
   start_at: 9097684
-  batch_limit: 100
+  batch_limit: 500
   sync:
-    interval: 5s
+    interval: 30s
 
 crawler:
   topic: "eth_crawler" 
