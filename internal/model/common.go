@@ -16,6 +16,11 @@ import (
 
 type GormBigInt big.Int
 
+func (bi GormBigInt) BigInt() *big.Int {
+	bigI := big.Int(bi)
+	return &bigI
+}
+
 func (bi GormBigInt) Int64() int64 {
 	bigI := big.Int(bi)
 	return bigI.Int64()

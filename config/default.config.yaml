@@ -24,15 +24,16 @@ database:
   user: test
   password: test
   database: local
+  max_open_conn: 50
 
 eth_client:
   url: https://data-seed-prebsc-2-s3.binance.org:8545/
   dial_timeout: 10s
 
 scheduler:
-  unstable_num: 0
-  start_at: 9096570
-  batch_limit: 1
+  unstable_num: 20
+  start_at: 9097684
+  batch_limit: 100
   sync:
     interval: 5s
 

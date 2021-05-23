@@ -8,7 +8,9 @@ package crawler
 import (
 	"sync-ethereum/internal/config"
 	"sync-ethereum/internal/delivery/crawler"
+	"sync-ethereum/internal/repository/gorm"
 	"sync-ethereum/internal/service/ethclient_crawler"
+	"sync-ethereum/internal/service/storage"
 	"sync-ethereum/internal/wireset"
 )
 
@@ -27,8 +29,14 @@ func Initialize(configPath string) (Application, error) {
 	if err != nil {
 		return Application{}, err
 	}
+	db, err := wireset.InitDatabase(configConfig, logger)
+	if err != nil {
+		return Application{}, err
+	}
+	storageRepository := gorm.NewStorageRepository(db)
+	storageService := storage.NewStorageService(storageRepository)
 	crawlerService := ethclient_crawler.NewEthClientCrawlerService(configConfig)
-	crawlerCrawler := crawler.NewCrawler(configConfig, logger, mq, crawlerService)
+	crawlerCrawler := crawler.NewCrawler(configConfig, logger, mq, storageService, crawlerService)
 	application := newApplication(logger, crawlerCrawler)
 	return application, nil
 }

@@ -2,6 +2,7 @@ package scheduler
 
 import (
 	"context"
+	"encoding/json"
 	"math/big"
 	"sync-ethereum/internal/config"
 	"sync-ethereum/internal/model"
@@ -75,7 +76,21 @@ func (scheduler *Scheduler) Start() error {
 			limit := i + scheduler.config.Scheduler.BatchLimit
 			for i < number.Int64() && i < limit {
 				scheduler.logger.Info().Int64("block_number", i).Err(err).Msg("push crawler id")
-				if err := scheduler.mq.Publish(scheduler.config.Crawler.Topic, uuid.New().String(), big.NewInt(i).Bytes()); err != nil {
+				n := big.NewInt(i)
+				isStable := true
+				if i <= onlineBockNumber.Int64() && i > (onlineBockNumber.Int64()-int64(scheduler.config.Scheduler.UnstableNumber)) {
+					isStable = false
+				}
+				message := model.CrawlerMessage{
+					IsStable:    isStable,
+					BlockNumber: model.GormBigInt(*n),
+				}
+				messageBytes, err := json.Marshal(message)
+				if err != nil {
+					scheduler.logger.Error().Int64("block_number", i).Err(err).Msg("marshal crawler message error")
+					continue
+				}
+				if err := scheduler.mq.Publish(scheduler.config.Crawler.Topic, uuid.New().String(), messageBytes); err != nil {
 					scheduler.logger.Error().Int64("block_number", i).Err(err).Msg("push crawler id error")
 					break
 				}

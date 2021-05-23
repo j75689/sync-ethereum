@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math/big"
 	"sync-ethereum/internal/config"
 	"sync-ethereum/internal/model"
 	"sync-ethereum/internal/service"
@@ -14,27 +13,35 @@ import (
 	"github.com/rs/zerolog"
 )
 
-func NewCrawler(config config.Config, logger zerolog.Logger, mq mq.MQ, crawler service.CrawlerService) *Crawler {
+func NewCrawler(config config.Config, logger zerolog.Logger, mq mq.MQ, storageSvc service.StorageService, crawler service.CrawlerService) *Crawler {
 	return &Crawler{
-		config:  config,
-		logger:  logger,
-		mq:      mq,
-		crawler: crawler,
+		config:     config,
+		logger:     logger,
+		mq:         mq,
+		storageSvc: storageSvc,
+		crawler:    crawler,
 	}
 }
 
 type Crawler struct {
-	config  config.Config
-	logger  zerolog.Logger
-	mq      mq.MQ
-	crawler service.CrawlerService
+	config     config.Config
+	logger     zerolog.Logger
+	mq         mq.MQ
+	storageSvc service.StorageService
+	crawler    service.CrawlerService
 }
 
 func (c *Crawler) Start() error {
 	err := c.mq.Subscribe(context.Background(), c.config.Crawler.PoolSize, c.config.Crawler.Topic, func(key string, data []byte) (bool, error) {
 		ctx, cancel := context.WithTimeout(context.Background(), c.config.Crawler.Timeout)
 		defer cancel()
-		number := new(big.Int).SetBytes(data)
+		crawlerMessage := model.CrawlerMessage{}
+		err := json.Unmarshal(data, &crawlerMessage)
+		if err != nil {
+			return true, err
+		}
+
+		number := crawlerMessage.BlockNumber.BigInt()
 		c.logger.Info().Int64("block_number", number.Int64()).Msg("parse block")
 		block, err := c.crawler.GetBlockByNumber(ctx, number)
 		if err != nil {
@@ -46,6 +53,7 @@ func (c *Crawler) Start() error {
 			BlockHash:   block.Hash().Hex(),
 			BlockTime:   block.Time(),
 			ParentHash:  block.ParentHash().Hex(),
+			IsStable:    crawlerMessage.IsStable,
 			Transaction: make([]*model.Transaction, block.Transactions().Len()),
 		}
 
@@ -94,6 +102,18 @@ func (c *Crawler) Start() error {
 		b, err := json.Marshal(modelBlock)
 		if err != nil {
 			return true, err // format error, not retry
+		}
+
+		// pre-written
+		err = c.storageSvc.CreateBlock(ctx, &model.Block{
+			BlockNumber: modelBlock.BlockNumber,
+			BlockHash:   modelBlock.BlockHash,
+			BlockTime:   modelBlock.BlockTime,
+			ParentHash:  modelBlock.ParentHash,
+			IsStable:    false,
+		})
+		if err != nil {
+			c.logger.Error().Err(err).Int64("block_number", number.Int64()).Msg("pre-written block error")
 		}
 
 		c.logger.Info().RawJSON("block", b).Int64("block_number", number.Int64()).Msg("push to database writer")

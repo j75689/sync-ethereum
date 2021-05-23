@@ -9,9 +9,9 @@ import (
 
 type Block struct {
 	BlockNumber GormBigInt     `json:"block_num" gorm:"type:varchar(32);column:block_num;primaryKey;autoIncrement:false"`
-	BlockHash   string         `json:"block_hash" gorm:"type:varchar(128);column:block_hash;uniqueIndex"`
+	BlockHash   string         `json:"block_hash" gorm:"type:varchar(128);column:block_hash;uniqueIndex:idx_block_parent_hash"`
 	BlockTime   uint64         `json:"block_time"`
-	ParentHash  string         `json:"parent_hash" gorm:"type:varchar(128);column:parent_hash;uniqueIndex"`
+	ParentHash  string         `json:"parent_hash" gorm:"type:varchar(128);column:parent_hash;uniqueIndex:idx_block_parent_hash"`
 	IsStable    bool           `json:"is_stable"`
 	Transaction []*Transaction `gorm:"foreignKey:BlockNumber;references:BlockNumber"`
 	CreatedAt   time.Time      `json:"created_at"`
