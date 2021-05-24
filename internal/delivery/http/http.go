@@ -78,7 +78,16 @@ func (server *HttpServer) Run(addr string) error {
 }
 
 func (server *HttpServer) Shutdown() error {
-	return server.httpServer.Close()
+	if err := server.httpServer.Close(); err != nil {
+		return err
+	}
+	if err := server.mq.Close(); err != nil {
+		return err
+	}
+	if err := server.storageSvc.Close(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (server *HttpServer) RequestIDMiddleware(ctx *gin.Context) {

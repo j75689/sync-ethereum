@@ -127,6 +127,12 @@ func (c *Crawler) Start() error {
 }
 
 func (c *Crawler) Shutdown() error {
+	if err := c.mq.Close(); err != nil {
+		return err
+	}
+	if err := c.storageSvc.Close(); err != nil {
+		return err
+	}
 	c.crawler.Close()
-	return c.mq.Close()
+	return nil
 }

@@ -47,8 +47,12 @@ func (w *DatabaseWriter) Start() error {
 }
 
 func (w *DatabaseWriter) Shutdown() error {
+	if err := w.mq.Close(); err != nil {
+		return err
+	}
+
 	if err := w.storageSvc.Close(); err != nil {
 		return err
 	}
-	return w.mq.Close()
+	return nil
 }
