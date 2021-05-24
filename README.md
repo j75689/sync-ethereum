@@ -15,6 +15,13 @@ Available Commands:
   migrate     Migration tool
   scheduler   Start scheduler
   writer      Start database writer
+
+Flags:
+      --config string   config file (default "config/default.config.yaml")
+  -h, --help            help for this command
+      --timeout uint    graceful shutdown timeout (second) (default 300)
+
+Use " [command] --help" for more information about a command.
 ```
 
 ## Configuration
