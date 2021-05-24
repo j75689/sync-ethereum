@@ -9,6 +9,7 @@ import (
 	"sync-ethereum/pkg/mq"
 
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
 )
 
@@ -44,7 +45,7 @@ func (c *Crawler) Start() error {
 		c.logger.Info().Int64("block_number", number.Int64()).Msg("parse block")
 		block, err := c.crawler.GetBlockByNumber(ctx, number)
 		if err != nil {
-			return false, err
+			return false, errors.WithMessagef(err, "get block error, block_number: %d", number.Int64())
 		}
 
 		modelBlock := model.Block{
@@ -59,7 +60,7 @@ func (c *Crawler) Start() error {
 		for idx, tx := range block.Body().Transactions {
 			receipt, err := c.crawler.GetTransactionReceipt(ctx, tx.Hash())
 			if err != nil {
-				return false, err
+				return false, errors.WithMessagef(err, "get transaction receipt error, block_number: %d, txHash: %s", number.Int64(), tx.Hash().String())
 			}
 
 			from := ""

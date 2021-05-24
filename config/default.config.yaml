@@ -2,7 +2,7 @@ app_id: sync-ethereum
 release: false
 
 logger:
-  level: TRACE
+  level: ERROR
   format: console # json, console
 
 http:
@@ -40,10 +40,10 @@ scheduler:
 crawler:
   topic: "eth_crawler" 
   pool_size: 100
-  timeout: 10s
+  timeout: 1m
 
 database_writer:
   topic: "eth_database_writer"
   pool_size: 100
-  timeout: 10s
+  timeout: 1m
   
