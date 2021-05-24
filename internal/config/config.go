@@ -103,8 +103,9 @@ type ConfluentKafkaOptionConfig struct {
 }
 
 type EthClientConfig struct {
-	URL         string        `mapstructure:"url"`
-	DialTimeout time.Duration `mapstructure:"dial_timeout"`
+	URL           string        `mapstructure:"url"`
+	DialTimeout   time.Duration `mapstructure:"dial_timeout"`
+	MaxClientConn int           `mapstructure:"max_client_conn"`
 }
 
 type SchedulerConfig struct {
@@ -163,6 +164,7 @@ func NewConfig(configPath string) (Config, error) {
 
 	/* mq */
 	v.SetDefault("mq.driver", "")
+	/* watermill kafka option */
 	v.SetDefault("mq.kafka_option.brokers", []string{})
 	v.SetDefault("mq.kafka_option.consumer_group", "")
 	v.SetDefault("mq.kafka_option.offsets_initial", -2) // OffsetNewest = -1, OffsetOldest = -2
@@ -192,6 +194,7 @@ func NewConfig(configPath string) (Config, error) {
 	/* eth client */
 	v.SetDefault("eth_client.url", "")
 	v.SetDefault("eth_client.dial_timeout", 10*time.Second)
+	v.SetDefault("eth_client.max_client_conn", 100)
 
 	/* scheduler */
 	v.SetDefault("scheduler.unstable_num", 20)

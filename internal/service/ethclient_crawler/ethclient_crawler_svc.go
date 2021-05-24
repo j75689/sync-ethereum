@@ -14,7 +14,7 @@ var _ service.CrawlerService = (*EthClientCrawlerService)(nil)
 
 func NewEthClientCrawlerService(config config.Config) service.CrawlerService {
 	return &EthClientCrawlerService{
-		clientPool: _NewClientPool(config.EthClient.DialTimeout, config.EthClient.URL),
+		clientPool: _NewClientPool(config.EthClient.DialTimeout, config.EthClient.URL, config.EthClient.MaxClientConn),
 	}
 }
 
@@ -28,8 +28,6 @@ func (svc *EthClientCrawlerService) GetBlockNumber(ctx context.Context) (*big.In
 		return nil, err
 	}
 
-	defer svc.clientPool.Put(client)
-
 	number, err := client.BlockNumber(ctx)
 	if err != nil {
 		return nil, err
@@ -42,7 +40,7 @@ func (svc *EthClientCrawlerService) GetBlockByNumber(ctx context.Context, number
 	if err != nil {
 		return nil, err
 	}
-	defer svc.clientPool.Put(client)
+
 	return client.BlockByNumber(ctx, number)
 }
 
@@ -51,7 +49,7 @@ func (svc *EthClientCrawlerService) GetTransactionByHash(ctx context.Context, ha
 	if err != nil {
 		return nil, false, err
 	}
-	defer svc.clientPool.Put(client)
+
 	return client.TransactionByHash(ctx, hash)
 }
 
@@ -60,7 +58,7 @@ func (svc *EthClientCrawlerService) GetTransactionReceipt(ctx context.Context, t
 	if err != nil {
 		return nil, err
 	}
-	defer svc.clientPool.Put(client)
+
 	return client.TransactionReceipt(ctx, txHash)
 }
 

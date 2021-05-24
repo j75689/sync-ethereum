@@ -2,7 +2,7 @@ app_id: sync-ethereum
 release: false
 
 logger:
-  level: ERROR
+  level: TRACE
   format: console # json, console
 
 http:
@@ -29,6 +29,7 @@ database:
 eth_client:
   url: https://data-seed-prebsc-2-s3.binance.org:8545/
   dial_timeout: 10s
+  max_client_conn: 100
 
 scheduler:
   unstable_num: 50
