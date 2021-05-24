@@ -4,7 +4,7 @@
 
 
 ## Usage
-```bash
+```
 Usage:
    [command]
 
