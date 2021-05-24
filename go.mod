@@ -1,6 +1,6 @@
 module sync-ethereum
 
-go 1.15
+go 1.16
 
 require (
 	github.com/Shopify/sarama v1.26.0
@@ -13,7 +13,7 @@ require (
 	github.com/gin-gonic/gin v1.7.2
 	github.com/go-gormigrate/gormigrate/v2 v2.0.0
 	github.com/google/uuid v1.1.5
-	github.com/google/wire v0.4.0
+	github.com/google/wire v0.5.0
 	github.com/pkg/errors v0.9.1
 	github.com/rs/zerolog v1.20.0
 	github.com/spf13/cobra v1.1.1

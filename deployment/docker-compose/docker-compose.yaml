@@ -1,0 +1,230 @@
+version: '3.4'
+services:
+    migration:
+        container_name: migration
+        image: j75689/sync-ethereum
+        build:
+            context: ../../
+            dockerfile: build/Dockerfile
+        command: ["migrate","up"]
+        environment: 
+            - APP_ID=sync-ethereum-migration
+            - RELEASE=true
+            - LOGGER_LEVEL=INFO
+            - LOGGER_FORMAT=json
+            - DATABASE_DRIVER=postgres
+            - DATABASE_HOST=database
+            - DATABASE_PORT=5432
+            - DATABASE_USER=test
+            - DATABASE_PASSWORD=test
+            - DATABASE_DATABASE=sync_ethereum
+        depends_on:
+            database:
+                condition: service_healthy
+    
+    api:
+        container_name: api
+        image: j75689/sync-ethereum
+        build:
+            context: ../../
+            dockerfile: build/Dockerfile
+        command: http
+        ports: 
+            - 8080:8080
+        environment: 
+            - APP_ID=sync-ethereum-api-gateway
+            - RELEASE=true
+            - LOGGER_LEVEL=TRACE
+            - LOGGER_FORMAT=json
+            - HTTP_PORT=8080
+            - MQ_DRIVER=confluentkafka
+            - MQ_CONFLUENTKAFKA_OPTION_BROKERS=broker:9092
+            - MQ_CONFLUENTKAFKA_OPTION_CONSUMER_GROUP=sync-ethereum-api-gateway
+            - MQ_CONFLUENTKAFKA_OPTION_GROUP_ID=sync-ethereum-api-gateway
+            - DATABASE_DRIVER=postgres
+            - DATABASE_HOST=database
+            - DATABASE_PORT=5432
+            - DATABASE_USER=test
+            - DATABASE_PASSWORD=test
+            - DATABASE_DATABASE=sync_ethereum
+            - DATABASE_MAX_OPEN_CONN=50
+            - CRAWLER_TOPIC=eth_crawler
+        depends_on:
+            database:
+                condition: service_healthy
+            zookeeper:
+                condition: service_healthy
+            broker:
+                condition: service_healthy
+
+    scheduler:
+        container_name: scheduler
+        image: j75689/sync-ethereum
+        build:
+            context: ../../
+            dockerfile: build/Dockerfile
+        command: scheduler
+        environment: 
+            - APP_ID=sync-ethereum-scheduler
+            - RELEASE=true
+            - LOGGER_LEVEL=TRACE
+            - LOGGER_FORMAT=json
+            - MQ_DRIVER=confluentkafka
+            - MQ_CONFLUENTKAFKA_OPTION_BROKERS=broker:9092
+            - MQ_CONFLUENTKAFKA_OPTION_CONSUMER_GROUP=sync-ethereum-scheduler
+            - MQ_CONFLUENTKAFKA_OPTION_GROUP_ID=sync-ethereum-scheduler
+            - DATABASE_DRIVER=postgres
+            - DATABASE_HOST=database
+            - DATABASE_PORT=5432
+            - DATABASE_USER=test
+            - DATABASE_PASSWORD=test
+            - DATABASE_DATABASE=sync_ethereum
+            - DATABASE_MAX_OPEN_CONN=50
+            - ETH_CLIENT_URL=https://data-seed-prebsc-2-s3.binance.org:8545/
+            - ETH_CLIENT_DIAL_TIMEOUT=10s
+            - ETH_CLIENT_MAX_CLIENT_CONN=1
+            - SCHEDULER_UNSTABLE_NUM=50
+            - SCHEDULER_START_AT=9119317
+            - SCHEDULER_BATCH_LIMIT=100
+            - SCHEDULER_SYNC_INTERVAL=10s
+            - CRAWLER_TOPIC=eth_crawler
+        depends_on:
+            database:
+                condition: service_healthy
+            zookeeper:
+                condition: service_healthy
+            broker:
+                condition: service_healthy
+    
+    crawler:
+        container_name: crawler
+        image: j75689/sync-ethereum
+        build:
+            context: ../../
+            dockerfile: build/Dockerfile
+        command: crawler
+        environment: 
+            - APP_ID=sync-ethereum-crawler
+            - RELEASE=true
+            - LOGGER_LEVEL=TRACE
+            - LOGGER_FORMAT=json
+            - MQ_DRIVER=confluentkafka
+            - MQ_CONFLUENTKAFKA_OPTION_BROKERS=broker:9092
+            - MQ_CONFLUENTKAFKA_OPTION_CONSUMER_GROUP=sync-ethereum-crawler
+            - MQ_CONFLUENTKAFKA_OPTION_GROUP_ID=sync-ethereum-crawler
+            - DATABASE_DRIVER=postgres
+            - DATABASE_HOST=database
+            - DATABASE_PORT=5432
+            - DATABASE_USER=test
+            - DATABASE_PASSWORD=test
+            - DATABASE_DATABASE=sync_ethereum
+            - DATABASE_MAX_OPEN_CONN=100
+            - ETH_CLIENT_URL=https://data-seed-prebsc-2-s3.binance.org:8545/
+            - ETH_CLIENT_DIAL_TIMEOUT=10s
+            - ETH_CLIENT_MAX_CLIENT_CONN=100
+            - CRAWLER_TOPIC=eth_crawler
+            - CRAWLER_POOL_SIZE=100
+            - CRAWLER_TIMEOUT=1m
+            - DATABASE_WRITER_TOPIC=eth_database_writer
+        depends_on:
+            database:
+                condition: service_healthy
+            zookeeper:
+                condition: service_healthy
+            broker:
+                condition: service_healthy
+
+    writer:
+        container_name: writer
+        image: j75689/sync-ethereum
+        build:
+            context: ../../
+            dockerfile: build/Dockerfile
+        command: writer
+        environment: 
+            - APP_ID=sync-ethereum-writer
+            - RELEASE=true
+            - LOGGER_LEVEL=TRACE
+            - LOGGER_FORMAT=json
+            - MQ_DRIVER=confluentkafka
+            - MQ_CONFLUENTKAFKA_OPTION_BROKERS=broker:9092
+            - MQ_CONFLUENTKAFKA_OPTION_CONSUMER_GROUP=sync-ethereum-writer
+            - MQ_CONFLUENTKAFKA_OPTION_GROUP_ID=sync-ethereum-writer
+            - DATABASE_DRIVER=postgres
+            - DATABASE_HOST=database
+            - DATABASE_PORT=5432
+            - DATABASE_USER=test
+            - DATABASE_PASSWORD=test
+            - DATABASE_DATABASE=sync_ethereum
+            - DATABASE_MAX_OPEN_CONN=100
+            - ETH_CLIENT_URL=https://data-seed-prebsc-2-s3.binance.org:8545/
+            - ETH_CLIENT_DIAL_TIMEOUT=10s
+            - ETH_CLIENT_MAX_CLIENT_CONN=100
+            - DATABASE_WRITER_TOPIC=eth_database_writer
+            - DATABASE_WRITER_POOL_SIZE=100
+            - DATABASE_WRITER_TIMEOUT=1m
+        depends_on:
+            database:
+                condition: service_healthy
+            zookeeper:
+                condition: service_healthy
+            broker:
+                condition: service_healthy
+
+    database:
+        container_name: database
+        image: postgres
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U postgres"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+        ports: 
+            - "5432:5432"
+        environment:
+            POSTGRES_DB: sync_ethereum
+            POSTGRES_USER: test
+            POSTGRES_PASSWORD: test
+
+    zookeeper:
+        container_name: zookeeper
+        image: confluentinc/cp-zookeeper:6.1.1
+        healthcheck:
+            test: nc -z localhost 2181
+            interval: 3s
+            timeout: 5s
+            retries: 5
+        ports:
+            - "2181:2181"
+        environment:
+            ZOOKEEPER_CLIENT_PORT: 2181
+            ZOOKEEPER_TICK_TIME: 2000
+    
+    broker:
+        container_name: broker
+        image: confluentinc/cp-server:6.1.1
+        depends_on:
+            - zookeeper
+        healthcheck:
+            test: nc -z localhost 9092
+            interval: 3s
+            timeout: 5s
+            retries: 5
+        ports:
+            - "9092:9092"
+            - "9101:9101"
+        environment:
+            KAFKA_BROKER_ID: 1
+            KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+            KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+            KAFKA_LISTENERS: PLAINTEXT://:9092,PLAINTEXT_HOST://0.0.0.0:29092
+            KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:29092,PLAINTEXT_HOST://broker:9092
+            KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+            KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+            KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 1
+            KAFKA_CONFLUENT_BALANCER_TOPIC_REPLICATION_FACTOR: 1
+            KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+            KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+            KAFKA_JMX_PORT: 9101
+            KAFKA_JMX_HOSTNAME: broker
+           

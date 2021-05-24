@@ -1,17 +1,17 @@
-FROM golang:1.15 as builder
+# confluent kafka package need compile with cgo
+FROM golang:1.16 as builder
 
 WORKDIR /build
 COPY . /build
 
-ENV CGO_ENABLED=0
 ENV GO111MODULE=on
-RUN make tools
+ENV GOOS=linux
+RUN go get github.com/google/wire/cmd/wire
 RUN go generate
 RUN go build -mod=readonly -v -o server main.go
 
-FROM alpine:3
+FROM golang:1.16
 
-RUN apk add --no-cache ca-certificates
 RUN mkdir -p /server
 WORKDIR /server
 
