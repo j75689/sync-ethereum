@@ -1,6 +1,21 @@
-# sync-ethereum
+# Introduction
 
 `sync-ethereum` is project that can help you synchronize Ethereum's block record and transaction records and write them to the database.
+
+
+## Usage
+```bash
+Usage:
+   [command]
+
+Available Commands:
+  crawler     Start crawler
+  help        Help about any command
+  http        Start http server
+  migrate     Migration tool
+  scheduler   Start scheduler
+  writer      Start database writer
+```
 
 ## Configuration
 
