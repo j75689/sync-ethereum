@@ -74,7 +74,7 @@ func (scheduler *Scheduler) Start() error {
 
 			i := currentBlockNumber.Int64() - int64(scheduler.config.Scheduler.UnstableNumber) // update unstable block
 			limit := i + scheduler.config.Scheduler.BatchLimit
-			for i < number.Int64() && i < limit {
+			for i <= number.Int64() && i < limit {
 				scheduler.logger.Info().Int64("block_number", i).Err(err).Msg("push crawler id")
 				n := big.NewInt(i)
 				isStable := true
