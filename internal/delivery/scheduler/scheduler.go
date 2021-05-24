@@ -96,7 +96,7 @@ func (scheduler *Scheduler) Start() error {
 				}
 				i++
 			}
-			number = big.NewInt(i)
+			number = big.NewInt(i - 1)
 			err = scheduler.storageSvc.UpdateCurrentBlockNumber(ctx, model.GormBigInt(*number), onlineBockNumber)
 			if err != nil {
 				scheduler.logger.Error().Int64("block_number", i).Err(err).Msg("update db current block number error")
