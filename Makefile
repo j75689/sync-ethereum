@@ -3,8 +3,8 @@
 tools:
 	@go get github.com/google/wire/cmd/wire
 
-run:
-	@go run main.go
+build-mac-m1:
+	@go build -tags dynamic
 
 build-image:
 	@read -p "Enter Image Name: " IMAGE_NAME; \
