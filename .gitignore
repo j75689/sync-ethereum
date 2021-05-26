@@ -16,3 +16,5 @@ vendor/
 
 # VS Code setting
 .vscode/
+
+local.config.yaml
