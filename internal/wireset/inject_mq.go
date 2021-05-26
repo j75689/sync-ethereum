@@ -43,6 +43,10 @@ func InitMQ(config config.Config, log zerolog.Logger) (queue mq.MQ, err error) {
 			FetchMaxBytes:          config.MQ.ConfluentKafkaOption.FetchMaxBytes,
 			MaxPartitionFetchBytes: config.MQ.ConfluentKafkaOption.MaxPartitionFetchBytes,
 			PollTimeoutMs:          config.MQ.ConfluentKafkaOption.PollTimeoutMs,
+			SASlUserName:           config.MQ.ConfluentKafkaOption.SASlUserName,
+			SASLPassword:           config.MQ.ConfluentKafkaOption.SASLPassword,
+			SASLMechanisms:         config.MQ.ConfluentKafkaOption.SASLMechanisms,
+			SecurityProtoco:        config.MQ.ConfluentKafkaOption.SecurityProtoco,
 		}, log)
 	default:
 		err = errors.New("no supported driver [" + config.MQ.Driver + "]")

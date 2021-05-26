@@ -36,4 +36,10 @@ type KafkaOption struct {
 	FetchMaxBytes          int
 	MaxPartitionFetchBytes int
 	PollTimeoutMs          int
+
+	// ================ auth ================
+	SASlUserName    string
+	SASLPassword    string
+	SASLMechanisms  string
+	SecurityProtoco string
 }

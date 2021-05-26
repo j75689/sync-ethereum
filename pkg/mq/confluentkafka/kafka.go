@@ -115,6 +115,12 @@ func _NewConsumer(option KafkaOption, logger zerolog.Logger, callbackChan *_Call
 	if option.PollTimeoutMs <= 0 {
 		option.PollTimeoutMs = 100
 	}
+	if option.SecurityProtoco == "" {
+		option.SecurityProtoco = "plaintext"
+	}
+	if option.SASLMechanisms == "" {
+		option.SASLMechanisms = "GSSAPI"
+	}
 
 	c, err := kafka.NewConsumer(&kafka.ConfigMap{
 		"bootstrap.servers": servers,
@@ -137,6 +143,10 @@ func _NewConsumer(option KafkaOption, logger zerolog.Logger, callbackChan *_Call
 		"auto.commit.interval.ms":       option.AutoCommitIntervalMs,
 		"client.id":                     option.ClientID,
 		"metadata.max.age.ms":           300000,
+		"sasl.username":                 option.SASlUserName,
+		"sasl.password":                 option.SASLPassword,
+		"security.protocol":             option.SecurityProtoco,
+		"sasl.mechanisms":               option.SASLMechanisms,
 	})
 	if err != nil {
 		return nil, nil, err
@@ -250,6 +260,12 @@ func _NewProducer(option KafkaOption, logger zerolog.Logger) (*kafka.Producer, f
 	if option.FlushWaitMs <= 0 {
 		option.FlushWaitMs = 1000
 	}
+	if option.SecurityProtoco == "" {
+		option.SecurityProtoco = "plaintext"
+	}
+	if option.SASLMechanisms == "" {
+		option.SASLMechanisms = "GSSAPI"
+	}
 
 	p, err := kafka.NewProducer(&kafka.ConfigMap{
 		"bootstrap.servers": servers,
@@ -258,6 +274,10 @@ func _NewProducer(option KafkaOption, logger zerolog.Logger) (*kafka.Producer, f
 		"retries":           option.Retries,
 		"batch.size":        option.BatchSize,
 		"client.id":         option.ClientID,
+		"sasl.username":     option.SASlUserName,
+		"sasl.password":     option.SASLPassword,
+		"security.protocol": option.SecurityProtoco,
+		"sasl.mechanisms":   option.SASLMechanisms,
 	})
 
 	if err != nil {

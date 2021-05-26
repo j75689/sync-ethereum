@@ -100,6 +100,12 @@ type ConfluentKafkaOptionConfig struct {
 	FetchMaxBytes          int `mapstructure:"fetch_max_bytes"`
 	MaxPartitionFetchBytes int `mapstructure:"max_partition_fetch_bytes"`
 	PollTimeoutMs          int `mapstructure:"poll_timeout_ms"`
+
+	// ================ auth ================
+	SASlUserName    string `mapstructure:"sasl_username"`
+	SASLPassword    string `mapstructure:"sasl_password"`
+	SASLMechanisms  string `mapstructure:"sasl_mechanisms"`
+	SecurityProtoco string `mapstructure:"security_protoco"`
 }
 
 type EthClientConfig struct {
@@ -190,6 +196,10 @@ func NewConfig(configPath string) (Config, error) {
 	v.SetDefault("mq.confluentkafka_option.fetch_max_bytes", 0)
 	v.SetDefault("mq.confluentkafka_option.max_partition_fetch_bytes", 0)
 	v.SetDefault("mq.confluentkafka_option.poll_timeout_ms", 100)
+	v.SetDefault("mq.confluentkafka_option.sasl_username", "")
+	v.SetDefault("mq.confluentkafka_option.sasl_password", "")
+	v.SetDefault("mq.confluentkafka_option.sasl_mechanisms", "")
+	v.SetDefault("mq.confluentkafka_option.security_protoco", "")
 
 	/* eth client */
 	v.SetDefault("eth_client.url", "")
